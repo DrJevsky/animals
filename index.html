@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Ecosystem Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🦊 Animal Ecosystem Simulation 🌿</h1>
+            <p>Watch as animals roam, feed, reproduce, and evolve in this dynamic ecosystem</p>
+        </header>
+        
+        <div class="controls">
+            <button id="pauseBtn" class="btn">Pause</button>
+            <button id="speedUpBtn" class="btn">Speed Up</button>
+            <button id="slowDownBtn" class="btn">Slow Down</button>
+            <button id="resetBtn" class="btn">Reset</button>
+            <label class="checkbox-label">
+                <input type="checkbox" id="showTrails" checked>
+                Show Trails
+            </label>
+        </div>
+        
+        <div class="main-content">
+            <canvas id="simulationCanvas" width="1200" height="700"></canvas>
+            
+            <div class="stats-panel">
+                <h2>Population Statistics</h2>
+                <div id="stats"></div>
+                
+                <h2>Legend</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #90EE90;">🌱</span>
+                        <span>Vegetation</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #D2691E;">🐰</span>
+                        <span>Rabbit (Herbivore)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #8B4513;">🦌</span>
+                        <span>Deer (Herbivore)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #FF6347;">🦊</span>
+                        <span>Fox (Predator)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #708090;">🐺</span>
+                        <span>Wolf (Predator)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" style="background: #654321;">🐻</span>
+                        <span>Bear (Apex Predator)</span>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Simulation Info</h3>
+                    <p><strong>Time:</strong> <span id="simTime">0</span>s</p>
+                    <p><strong>Speed:</strong> <span id="simSpeed">1.0</span>x</p>
+                    <p><strong>Total Animals:</strong> <span id="totalAnimals">0</span></p>
+                    <p><strong>Total Vegetation:</strong> <span id="totalVegetation">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="description">
+            <h2>About the Simulation</h2>
+            <p>
+                This ecosystem simulation features 5 different animal species with unique behaviors:
+            </p>
+            <ul>
+                <li><strong>Rabbits</strong> - Fast breeding herbivores that feed on vegetation</li>
+                <li><strong>Deer</strong> - Larger herbivores with better vision and slower reproduction</li>
+                <li><strong>Foxes</strong> - Small predators that hunt rabbits</li>
+                <li><strong>Wolves</strong> - Pack predators that hunt deer</li>
+                <li><strong>Bears</strong> - Apex predators that can hunt any animal</li>
+            </ul>
+            <p>
+                Animals have health, age, hunger levels, and unique traits (speed, size, vision) that are 
+                inherited by offspring with some variation. Males and females must meet to reproduce. 
+                Watch as the ecosystem balances itself through predator-prey relationships!
+            </p>
+        </div>
+    </div>
+    
+    <script src="simulation.js"></script>
+</body>
+</html>
