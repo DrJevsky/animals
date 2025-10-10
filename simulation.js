@@ -152,12 +152,29 @@ class Animal {
         this.position = this.position.add(this.velocity.multiply(deltaTime));
         
         // Boundary wrapping
-        if (this.position.x < 0) this.position.x = world.width;
-        if (this.position.x > world.width) this.position.x = 0;
-        if (this.position.y < 0) this.position.y = world.height;
-        if (this.position.y > world.height) this.position.y = 0;
+        let wrapped = false;
+        if (this.position.x < 0) {
+            this.position.x = world.width;
+            wrapped = true;
+        }
+        if (this.position.x > world.width) {
+            this.position.x = 0;
+            wrapped = true;
+        }
+        if (this.position.y < 0) {
+            this.position.y = world.height;
+            wrapped = true;
+        }
+        if (this.position.y > world.height) {
+            this.position.y = 0;
+            wrapped = true;
+        }
 
         // Trail for visual effect
+        // Clear trail when wrapping to avoid lines across the screen
+        if (wrapped) {
+            this.trail = [];
+        }
         this.trail.push({ x: this.position.x, y: this.position.y });
         if (this.trail.length > 10) this.trail.shift();
 
