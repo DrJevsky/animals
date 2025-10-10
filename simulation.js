@@ -373,6 +373,15 @@ class World {
         this.speed = 1.0;
         this.paused = false;
         
+        // Track which species are enabled
+        this.enabledSpecies = {
+            rabbit: true,
+            deer: true,
+            fox: true,
+            wolf: true,
+            bear: true
+        };
+        
         this.initialize();
     }
 
@@ -385,12 +394,12 @@ class World {
             ));
         }
 
-        // Initialize animals
-        this.addAnimals(SPECIES.RABBIT, 20);
-        this.addAnimals(SPECIES.DEER, 12);
-        this.addAnimals(SPECIES.FOX, 8);
-        this.addAnimals(SPECIES.WOLF, 6);
-        this.addAnimals(SPECIES.BEAR, 4);
+        // Initialize animals - only if enabled
+        if (this.enabledSpecies.rabbit) this.addAnimals(SPECIES.RABBIT, 20);
+        if (this.enabledSpecies.deer) this.addAnimals(SPECIES.DEER, 12);
+        if (this.enabledSpecies.fox) this.addAnimals(SPECIES.FOX, 8);
+        if (this.enabledSpecies.wolf) this.addAnimals(SPECIES.WOLF, 6);
+        if (this.enabledSpecies.bear) this.addAnimals(SPECIES.BEAR, 4);
     }
 
     addAnimals(species, count) {
@@ -649,6 +658,16 @@ class Simulation {
 
         document.getElementById('showTrails').addEventListener('change', (e) => {
             this.renderer.showTrails = e.target.checked;
+        });
+
+        // Setup species toggle checkboxes
+        ['rabbit', 'deer', 'fox', 'wolf', 'bear'].forEach(species => {
+            const checkbox = document.getElementById(`enable-${species}`);
+            if (checkbox) {
+                checkbox.addEventListener('change', (e) => {
+                    this.world.enabledSpecies[species] = e.target.checked;
+                });
+            }
         });
     }
 
