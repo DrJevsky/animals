@@ -425,8 +425,14 @@ class World {
             animal.update(this, adjustedDelta);
 
             // Check for feeding - use the target that was found during update
-            if (animal.currentTarget) {
-                if (animal.tryEat(animal.currentTarget)) {
+            // Only try to eat if the animal is actually hungry and the target is food
+            if (animal.currentTarget && animal.hunger > 50) {
+                // Only try to eat if target is vegetation or a valid prey animal
+                const isValidFoodTarget = 
+                    animal.currentTarget instanceof Vegetation ||
+                    (animal.currentTarget instanceof Animal && animal.canEat(animal.currentTarget));
+                
+                if (isValidFoodTarget && animal.tryEat(animal.currentTarget)) {
                     if (animal.currentTarget instanceof Vegetation) {
                         this.vegetation = this.vegetation.filter(v => v !== animal.currentTarget);
                     } else if (animal.currentTarget instanceof Animal) {
