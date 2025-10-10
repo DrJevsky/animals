@@ -272,11 +272,13 @@ class Animal {
             if (target instanceof Vegetation) {
                 const energy = target.consume(30);
                 this.hunger = Math.max(0, this.hunger - energy);
+                this.health = Math.min(this.maxHealth, this.health + energy * 0.5);
                 return target.isDepleted();
             } else if (target instanceof Animal) {
                 // Predation
                 target.health = 0;
                 this.hunger = Math.max(0, this.hunger - 40);
+                this.health = Math.min(this.maxHealth, this.health + 20);
                 return true;
             }
         }
