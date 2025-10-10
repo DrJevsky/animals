@@ -86,6 +86,10 @@ class Animal {
         this.size = this.traits.size;
         this.angle = Math.random() * Math.PI * 2;
         this.trail = [];
+        
+        // Behavior state for visual indication
+        this.currentBehavior = 'wandering'; // 'wandering', 'hunting', 'eating', 'seeking_mate'
+        this.currentTarget = null;
     }
 
     initializeTraits() {
@@ -128,9 +132,19 @@ class Animal {
 
         // Decision making
         const target = this.findTarget(world);
+        this.currentTarget = target;
         if (target) {
+            // Determine behavior based on target type
+            if (target instanceof Animal) {
+                this.currentBehavior = 'hunting';
+            } else if (target instanceof Vegetation) {
+                this.currentBehavior = 'hunting'; // Herbivores "hunt" vegetation
+            } else {
+                this.currentBehavior = 'seeking_mate';
+            }
             this.moveTowards(target);
         } else {
+            this.currentBehavior = 'wandering';
             this.wander();
         }
 
@@ -234,6 +248,7 @@ class Animal {
     tryEat(target) {
         const distance = this.position.distance(target.position);
         if (distance < this.size + 5) {
+            this.currentBehavior = 'eating';
             if (target instanceof Vegetation) {
                 const energy = target.consume(30);
                 this.hunger = Math.max(0, this.hunger - energy);
@@ -526,11 +541,37 @@ class Renderer {
         const ctx = this.ctx;
         const pos = animal.position;
 
+        // Draw vision cone (semi-transparent)
+        if (animal.currentTarget) {
+            ctx.fillStyle = animal.species.color + '15';
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            const visionAngle = Math.PI / 3; // 60 degree cone
+            ctx.arc(pos.x, pos.y, animal.traits.vision * 0.3, 
+                    animal.angle - visionAngle / 2, 
+                    animal.angle + visionAngle / 2);
+            ctx.closePath();
+            ctx.fill();
+        }
+
         // Draw body
         ctx.fillStyle = animal.species.color;
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, animal.size, 0, Math.PI * 2);
         ctx.fill();
+
+        // Draw direction indicator (small triangle pointing in movement direction)
+        ctx.fillStyle = '#000000';
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(animal.angle);
+        ctx.beginPath();
+        ctx.moveTo(animal.size + 4, 0);
+        ctx.lineTo(animal.size - 2, -3);
+        ctx.lineTo(animal.size - 2, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
 
         // Draw health bar
         const barWidth = animal.size * 2;
@@ -559,6 +600,19 @@ class Renderer {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(animal.species.emoji, pos.x, pos.y);
+
+        // Draw behavior indicator (small icon above the animal)
+        const behaviorIcons = {
+            'wandering': '💤',
+            'hunting': '🎯',
+            'eating': '🍽️',
+            'seeking_mate': '💕'
+        };
+        const icon = behaviorIcons[animal.currentBehavior] || '';
+        if (icon) {
+            ctx.font = `${animal.size * 0.8}px Arial`;
+            ctx.fillText(icon, pos.x + animal.size + 5, pos.y - animal.size - 5);
+        }
     }
 }
 
