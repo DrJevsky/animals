@@ -119,15 +119,32 @@ class Animal {
     update(world, deltaTime) {
         // Age and basic metabolism
         this.age += deltaTime;
-        this.hunger += deltaTime * 0.5;
+        
+        // Hunger rate affected by age - young animals get hungry faster
+        const ageRatio = this.age / this.maxAge;
+        const hungerMultiplier = ageRatio < 0.3 ? 1.5 : (ageRatio < 0.7 ? 1.0 : 0.7);
+        this.hunger += deltaTime * 0.5 * hungerMultiplier;
+        
         this.reproductionCooldown = Math.max(0, this.reproductionCooldown - deltaTime);
 
-        // Health effects
-        if (this.hunger > 80) {
-            this.health -= deltaTime * 2; // Starving
+        // Health decay - constant rate based on size (smaller animals decay faster)
+        // Base decay rate inversely proportional to size
+        const sizeBasedDecay = 0.3 / (this.traits.size / 10);
+        
+        // Age affects health decay: young animals (0-30% of lifespan) decay slower,
+        // middle-aged (30-70%) normal, old animals (70%+) decay faster
+        let ageMultiplier = 1.0;
+        if (ageRatio < 0.3) {
+            ageMultiplier = 0.5; // Young animals decay slower
+        } else if (ageRatio > 0.7) {
+            ageMultiplier = 2.0; // Old animals decay faster
         }
-        if (this.age > this.maxAge * 0.8) {
-            this.health -= deltaTime * 0.5; // Aging
+        
+        this.health -= deltaTime * sizeBasedDecay * ageMultiplier;
+        
+        // Additional health loss when starving
+        if (this.hunger > 80) {
+            this.health -= deltaTime * 2;
         }
 
         // Decision making - only if not currently eating
@@ -286,10 +303,22 @@ class Animal {
     }
 
     canReproduce() {
-        return this.age > this.reproductionReady && 
-               this.reproductionCooldown <= 0 && 
-               this.health > 50 && 
-               this.hunger < 60;
+        // Basic requirements
+        if (this.age <= this.reproductionReady || 
+            this.reproductionCooldown > 0 || 
+            this.health < 50 || 
+            this.hunger > 60) {
+            return false;
+        }
+        
+        // Old animals (70%+ of lifespan) reproduce less often
+        const ageRatio = this.age / this.maxAge;
+        if (ageRatio > 0.7) {
+            // Old animals have only 30% chance to be ready to reproduce
+            return Math.random() < 0.3;
+        }
+        
+        return true;
     }
 
     reproduce(partner) {
@@ -308,7 +337,7 @@ class Animal {
     }
 
     isDead() {
-        return this.health <= 0 || this.age > this.maxAge;
+        return this.health <= 0;
     }
 }
 
