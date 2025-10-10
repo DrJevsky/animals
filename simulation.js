@@ -283,16 +283,20 @@ class Animal {
 
     tryEat(target) {
         const distance = this.position.distance(target.position);
-        if (distance < this.size + 5) {
-            this.currentBehavior = 'eating';
-            this.currentTarget = target;
+        // Larger collision radius for vegetation to make it easier for fast animals to catch
+        const catchRadius = target instanceof Vegetation ? this.size + 10 : this.size + 5;
+        if (distance < catchRadius) {
             if (target instanceof Vegetation) {
+                this.currentBehavior = 'eating';
+                this.currentTarget = target;
                 const energy = target.consume(30);
                 this.hunger = Math.max(0, this.hunger - energy);
                 this.health = Math.min(this.maxHealth, this.health + energy * 0.5);
                 return target.isDepleted();
             } else if (target instanceof Animal) {
                 // Predation
+                this.currentBehavior = 'eating';
+                this.currentTarget = target;
                 target.health = 0;
                 this.hunger = Math.max(0, this.hunger - 40);
                 this.health = Math.min(this.maxHealth, this.health + 20);
