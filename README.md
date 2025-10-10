@@ -4,7 +4,7 @@ An interactive web-based simulation of an animal ecosystem with predator-prey dy
 
 ## 🎮 Live Demo
 
-Simply open `index.html` in a web browser to run the simulation!
+Simply open [`this page`](https://drjevsky.github.io/animals/) in a web browser to run the simulation!
 
 ## ✨ Features
 
