@@ -86,6 +86,7 @@ class Animal {
         this.size = this.traits.size;
         this.angle = Math.random() * Math.PI * 2;
         this.trail = [];
+        this.trailTimer = 0; // Timer for trail sampling
         
         // Behavior state for visual indication
         this.currentBehavior = 'wandering'; // 'wandering', 'hunting', 'eating', 'seeking_mate'
@@ -193,9 +194,16 @@ class Animal {
         // Clear trail when wrapping to avoid lines across the screen
         if (wrapped) {
             this.trail = [];
+            this.trailTimer = 0;
         }
-        this.trail.push({ x: this.position.x, y: this.position.y });
-        if (this.trail.length > 10) this.trail.shift();
+        
+        // Sample trail at 2 times per second (every 0.5 seconds)
+        this.trailTimer += deltaTime;
+        if (this.trailTimer >= 0.5) {
+            this.trail.push({ x: this.position.x, y: this.position.y });
+            if (this.trail.length > 30) this.trail.shift(); // Increased from 10 to 30 for longer trails
+            this.trailTimer = 0;
+        }
 
         this.angle = Math.atan2(this.velocity.y, this.velocity.x);
     }
