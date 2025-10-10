@@ -130,22 +130,24 @@ class Animal {
             this.health -= deltaTime * 0.5; // Aging
         }
 
-        // Decision making
-        const target = this.findTarget(world);
-        this.currentTarget = target;
-        if (target) {
-            // Determine behavior based on target type
-            if (target instanceof Animal) {
-                this.currentBehavior = 'hunting';
-            } else if (target instanceof Vegetation) {
-                this.currentBehavior = 'hunting'; // Herbivores "hunt" vegetation
+        // Decision making - only if not currently eating
+        if (this.currentBehavior !== 'eating') {
+            const target = this.findTarget(world);
+            this.currentTarget = target;
+            if (target) {
+                // Determine behavior based on target type
+                if (target instanceof Animal) {
+                    this.currentBehavior = 'hunting';
+                } else if (target instanceof Vegetation) {
+                    this.currentBehavior = 'hunting'; // Herbivores "hunt" vegetation
+                } else {
+                    this.currentBehavior = 'seeking_mate';
+                }
+                this.moveTowards(target);
             } else {
-                this.currentBehavior = 'seeking_mate';
+                this.currentBehavior = 'wandering';
+                this.wander();
             }
-            this.moveTowards(target);
-        } else {
-            this.currentBehavior = 'wandering';
-            this.wander();
         }
 
         // Update position
@@ -266,6 +268,7 @@ class Animal {
         const distance = this.position.distance(target.position);
         if (distance < this.size + 5) {
             this.currentBehavior = 'eating';
+            this.currentTarget = target;
             if (target instanceof Vegetation) {
                 const energy = target.consume(30);
                 this.hunger = Math.max(0, this.hunger - energy);
@@ -455,6 +458,9 @@ class World {
                     } else if (animal.currentTarget instanceof Animal) {
                         this.animals = this.animals.filter(a => a !== animal.currentTarget);
                     }
+                    // Reset behavior after eating so it can reassess in the next frame
+                    animal.currentBehavior = 'wandering';
+                    animal.currentTarget = null;
                 }
             }
 
