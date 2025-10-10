@@ -424,14 +424,13 @@ class World {
             const animal = this.animals[i];
             animal.update(this, adjustedDelta);
 
-            // Check for feeding
-            const target = animal.findTarget(this);
-            if (target) {
-                if (animal.tryEat(target)) {
-                    if (target instanceof Vegetation) {
-                        this.vegetation = this.vegetation.filter(v => v !== target);
-                    } else if (target instanceof Animal) {
-                        this.animals = this.animals.filter(a => a !== target);
+            // Check for feeding - use the target that was found during update
+            if (animal.currentTarget) {
+                if (animal.tryEat(animal.currentTarget)) {
+                    if (animal.currentTarget instanceof Vegetation) {
+                        this.vegetation = this.vegetation.filter(v => v !== animal.currentTarget);
+                    } else if (animal.currentTarget instanceof Animal) {
+                        this.animals = this.animals.filter(a => a !== animal.currentTarget);
                     }
                 }
             }
@@ -595,6 +594,27 @@ class Renderer {
             pos.x - barWidth / 2,
             barY,
             barWidth * (animal.health / animal.maxHealth),
+            barHeight
+        );
+
+        // Draw hunger bar (below health bar)
+        const hungerBarY = barY + barHeight + 1;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(pos.x - barWidth / 2, hungerBarY, barWidth, barHeight);
+
+        // Hunger bar color: green when low hunger, yellow when moderate, red when starving
+        const hungerRatio = animal.hunger / animal.maxHunger;
+        if (hungerRatio < 0.5) {
+            ctx.fillStyle = '#4CAF50';
+        } else if (hungerRatio < 0.8) {
+            ctx.fillStyle = '#FFC107';
+        } else {
+            ctx.fillStyle = '#f44336';
+        }
+        ctx.fillRect(
+            pos.x - barWidth / 2,
+            hungerBarY,
+            barWidth * hungerRatio,
             barHeight
         );
 
