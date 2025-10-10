@@ -292,7 +292,8 @@ class Animal {
                 const energy = target.consume(30);
                 this.hunger = Math.max(0, this.hunger - energy);
                 this.health = Math.min(this.maxHealth, this.health + energy * 0.5);
-                return target.isDepleted();
+                // Return object with success flag and whether target should be removed
+                return { success: true, removeTarget: target.isDepleted() };
             } else if (target instanceof Animal) {
                 // Predation
                 this.currentBehavior = 'eating';
@@ -300,10 +301,10 @@ class Animal {
                 target.health = 0;
                 this.hunger = Math.max(0, this.hunger - 40);
                 this.health = Math.min(this.maxHealth, this.health + 20);
-                return true;
+                return { success: true, removeTarget: true };
             }
         }
-        return false;
+        return { success: false, removeTarget: false };
     }
 
     canReproduce() {
@@ -487,15 +488,21 @@ class World {
                     animal.currentTarget instanceof Vegetation ||
                     (animal.currentTarget instanceof Animal && animal.canEat(animal.currentTarget));
                 
-                if (isValidFoodTarget && animal.tryEat(animal.currentTarget)) {
-                    if (animal.currentTarget instanceof Vegetation) {
-                        this.vegetation = this.vegetation.filter(v => v !== animal.currentTarget);
-                    } else if (animal.currentTarget instanceof Animal) {
-                        this.animals = this.animals.filter(a => a !== animal.currentTarget);
+                if (isValidFoodTarget) {
+                    const eatResult = animal.tryEat(animal.currentTarget);
+                    if (eatResult.success) {
+                        // Remove target if it should be removed (depleted vegetation or killed animal)
+                        if (eatResult.removeTarget) {
+                            if (animal.currentTarget instanceof Vegetation) {
+                                this.vegetation = this.vegetation.filter(v => v !== animal.currentTarget);
+                            } else if (animal.currentTarget instanceof Animal) {
+                                this.animals = this.animals.filter(a => a !== animal.currentTarget);
+                            }
+                        }
+                        // Reset behavior after eating so it can reassess in the next frame
+                        animal.currentBehavior = 'wandering';
+                        animal.currentTarget = null;
                     }
-                    // Reset behavior after eating so it can reassess in the next frame
-                    animal.currentBehavior = 'wandering';
-                    animal.currentTarget = null;
                 }
             }
 
