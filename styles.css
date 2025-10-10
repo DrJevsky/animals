@@ -250,6 +250,127 @@ header p {
     border-left: 3px solid #ffc107;
 }
 
+.inspector-panel {
+    background: linear-gradient(135deg, #43cea215 0%, #185a9d15 100%);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #43cea2;
+    margin-bottom: 25px;
+    min-height: 200px;
+}
+
+.inspector-hint {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+}
+
+.inspector-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.inspector-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #43cea2;
+    margin-bottom: 10px;
+}
+
+.inspector-header .animal-emoji {
+    font-size: 2em;
+}
+
+.inspector-header .animal-title {
+    flex: 1;
+}
+
+.inspector-header .animal-title h3 {
+    margin: 0;
+    color: #43cea2;
+    font-size: 1.2em;
+}
+
+.inspector-header .animal-title p {
+    margin: 2px 0 0 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.inspector-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: white;
+    border-radius: 6px;
+    border-left: 3px solid #43cea2;
+}
+
+.inspector-row.health {
+    border-left-color: #28a745;
+}
+
+.inspector-row.hunger {
+    border-left-color: #ffc107;
+}
+
+.inspector-row.age {
+    border-left-color: #764ba2;
+}
+
+.inspector-row.activity {
+    border-left-color: #667eea;
+}
+
+.inspector-row.trait {
+    border-left-color: #185a9d;
+}
+
+.inspector-row .label {
+    font-weight: 600;
+    color: #333;
+}
+
+.inspector-row .value {
+    font-weight: 700;
+    color: #185a9d;
+}
+
+.inspector-bar {
+    flex: 1;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-left: 10px;
+    overflow: hidden;
+}
+
+.inspector-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.inspector-bar-fill.health {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.inspector-bar-fill.hunger {
+    background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.inspector-traits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 5px;
+}
+
 .description {
     padding: 30px;
     background: white;

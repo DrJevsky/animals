@@ -567,7 +567,7 @@ class Renderer {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    drawWorld(world) {
+    drawWorld(world, selectedAnimal = null) {
         this.clear();
 
         // Draw vegetation
@@ -579,7 +579,7 @@ class Renderer {
         }
 
         // Draw animals
-        world.animals.forEach(animal => this.drawAnimal(animal));
+        world.animals.forEach(animal => this.drawAnimal(animal, animal === selectedAnimal));
     }
 
     drawVegetation(veg) {
@@ -605,9 +605,25 @@ class Renderer {
         this.ctx.stroke();
     }
 
-    drawAnimal(animal) {
+    drawAnimal(animal, isSelected = false) {
         const ctx = this.ctx;
         const pos = animal.position;
+
+        // Draw selection highlight ring
+        if (isSelected) {
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, animal.size + 6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw pulsing outer ring
+            ctx.strokeStyle = '#FFD70080';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, animal.size + 10, 0, Math.PI * 2);
+            ctx.stroke();
+        }
 
         // Draw vision cone (semi-transparent)
         if (animal.currentTarget) {
@@ -713,8 +729,10 @@ class Simulation {
         this.renderer = new Renderer(this.canvas);
         this.lastTime = 0;
         this.running = true;
+        this.selectedAnimal = null;
         
         this.setupControls();
+        this.setupCanvasClick();
         this.animate();
     }
 
@@ -751,6 +769,35 @@ class Simulation {
         });
     }
 
+    setupCanvasClick() {
+        this.canvas.addEventListener('click', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
+
+            // Find the closest animal within click range
+            let closestAnimal = null;
+            let closestDistance = 30; // Maximum click distance
+
+            for (const animal of this.world.animals) {
+                const distance = Math.sqrt(
+                    Math.pow(animal.position.x - clickX, 2) + 
+                    Math.pow(animal.position.y - clickY, 2)
+                );
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestAnimal = animal;
+                }
+            }
+
+            this.selectedAnimal = closestAnimal;
+            this.updateInspector();
+        });
+    }
+
     animate(currentTime = 0) {
         if (!this.running) return;
 
@@ -761,8 +808,14 @@ class Simulation {
             this.world.update(deltaTime);
         }
 
-        this.renderer.drawWorld(this.world);
+        // Check if selected animal still exists
+        if (this.selectedAnimal && !this.world.animals.includes(this.selectedAnimal)) {
+            this.selectedAnimal = null;
+        }
+
+        this.renderer.drawWorld(this.world, this.selectedAnimal);
         this.updateUI();
+        this.updateInspector();
 
         requestAnimationFrame(this.animate.bind(this));
     }
@@ -788,9 +841,94 @@ class Simulation {
         document.getElementById('totalAnimals').textContent = this.world.animals.length;
         document.getElementById('totalVegetation').textContent = this.world.vegetation.length;
     }
+
+    updateInspector() {
+        const inspectorDiv = document.getElementById('inspector');
+        
+        if (!this.selectedAnimal) {
+            inspectorDiv.innerHTML = '<p class="inspector-hint">Click on an animal to inspect its details</p>';
+            return;
+        }
+
+        const animal = this.selectedAnimal;
+        const healthPercent = (animal.health / animal.maxHealth) * 100;
+        const hungerPercent = (animal.hunger / animal.maxHunger) * 100;
+        const agePercent = (animal.age / animal.maxAge) * 100;
+        
+        // Activity icons
+        const activityIcons = {
+            'wandering': '💤 Wandering',
+            'hunting': '🎯 Hunting',
+            'eating': '🍽️ Eating',
+            'seeking_mate': '💕 Seeking Mate'
+        };
+
+        const genderSymbol = animal.gender === 'male' ? '♂' : '♀';
+        const genderColor = animal.gender === 'male' ? '#4169E1' : '#FF69B4';
+
+        inspectorDiv.innerHTML = `
+            <div class="inspector-content">
+                <div class="inspector-header">
+                    <span class="animal-emoji">${animal.species.emoji}</span>
+                    <div class="animal-title">
+                        <h3>${animal.species.name.charAt(0).toUpperCase() + animal.species.name.slice(1)} <span style="color: ${genderColor}">${genderSymbol}</span></h3>
+                        <p>${animal.species.diet.includes('vegetation') ? 'Herbivore' : 'Carnivore'}</p>
+                    </div>
+                </div>
+
+                <div class="inspector-row health">
+                    <span class="label">Health</span>
+                    <div class="inspector-bar">
+                        <div class="inspector-bar-fill health" style="width: ${healthPercent}%"></div>
+                    </div>
+                    <span class="value">${animal.health.toFixed(0)}/${animal.maxHealth}</span>
+                </div>
+
+                <div class="inspector-row hunger">
+                    <span class="label">Hunger</span>
+                    <div class="inspector-bar">
+                        <div class="inspector-bar-fill hunger" style="width: ${hungerPercent}%"></div>
+                    </div>
+                    <span class="value">${animal.hunger.toFixed(0)}/${animal.maxHunger}</span>
+                </div>
+
+                <div class="inspector-row age">
+                    <span class="label">Age</span>
+                    <span class="value">${animal.age.toFixed(0)}/${animal.maxAge}</span>
+                </div>
+
+                <div class="inspector-row activity">
+                    <span class="label">Activity</span>
+                    <span class="value">${activityIcons[animal.currentBehavior] || animal.currentBehavior}</span>
+                </div>
+
+                <div class="inspector-row trait">
+                    <span class="label">Traits</span>
+                </div>
+                <div class="inspector-traits">
+                    <div class="inspector-row trait">
+                        <span class="label">Speed</span>
+                        <span class="value">${animal.traits.speed.toFixed(1)}</span>
+                    </div>
+                    <div class="inspector-row trait">
+                        <span class="label">Size</span>
+                        <span class="value">${animal.traits.size.toFixed(1)}</span>
+                    </div>
+                    <div class="inspector-row trait">
+                        <span class="label">Vision</span>
+                        <span class="value">${animal.traits.vision.toFixed(1)}</span>
+                    </div>
+                    <div class="inspector-row trait">
+                        <span class="label">Repro Rate</span>
+                        <span class="value">${animal.traits.reproductionRate.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 }
 
 // Initialize simulation when page loads
 window.addEventListener('load', () => {
-    new Simulation('simulationCanvas');
+    window.simulation = new Simulation('simulationCanvas');
 });
